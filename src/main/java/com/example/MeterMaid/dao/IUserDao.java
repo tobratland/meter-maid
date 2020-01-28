@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface IUserDao {
     void setDataSource(DataSource dataSource);
 
-    int create(User user);
+    User create(User user);
 
     User getUserById(UUID id);
 

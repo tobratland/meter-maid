@@ -20,10 +20,19 @@ public class UserDao implements IUserDao {
     }
 
     @Override
-    public int create(User user) {
-        return jdbcTemplate.update(
+    public User create(User user) {
+        jdbcTemplate.update(
                 "insert into users(id, firstname, lastname, email) values(?,?,?,?)",
                 user.getId(), user.getFirstName(), user.getLastName(), user.getEmail());
+        String sql = "select * from users where id = ?";
+        return jdbcTemplate.queryForObject(sql, new Object[]{user.getId()}, ((rs, rowNum) ->
+                new User(
+                        rs.getString("firstname"),
+                        rs.getString("lastname"),
+                        rs.getString("email"),
+                        (UUID) rs.getObject("id")
+                )
+        ));
     }
 
     @Override
