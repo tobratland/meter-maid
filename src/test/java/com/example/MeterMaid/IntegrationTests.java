@@ -1,83 +1,212 @@
 package com.example.MeterMaid;
 
-import com.example.MeterMaid.Model.MeterDataWithValues;
+import com.example.MeterMaid.Model.MeterData;
 import com.example.MeterMaid.Model.MeterValue;
 import com.example.MeterMaid.dao.MeterDataRepository;
-import com.example.MeterMaid.dao.MeterValueRespository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
+import com.example.MeterMaid.dao.MeterValueRepository;
+import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
+@RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
+@Rollback(true)
 public class IntegrationTests {
-    @Autowired
-    private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private MockMvc mockMvc;
 
     @Autowired
     private MeterDataRepository meterDataRepository;
 
     @Autowired
-    private MeterValueRespository meterValueRespository;
+    private MeterValueRepository meterValueRepository;
+
+
+    @BeforeEach
+    void setUp(){
+        MeterData meterData0 = getListOfMeterDataForTesting().get(0);
+        MeterData meterData1 = getListOfMeterDataForTesting().get(1);
+
+        meterDataRepository.SaveMeterData(meterData0);
+        meterDataRepository.SaveMeterData(meterData1);
+        List<MeterValue> meterValuesFor0 = getListOfMeterValuesFromMeterDataForTesting(0);
+        List<MeterValue> meterValuesFor1 = getListOfMeterValuesFromMeterDataForTesting(1);
+        List<MeterValue> meterValuesFor2 = getListOfMeterValuesFromMeterDataForTesting(2);
+        System.out.println(meterValuesFor0.get(1).getValue());
+
+        for (int i = 0; i < 23; i++) {
+            meterValueRepository.saveMeterValue(meterValuesFor0.get(i));
+        }
+
+        for (int i = 0; i < 23; i++) {
+            meterValueRepository.saveMeterValue(meterValuesFor1.get(i));
+        }
+        for (int i = 0; i < 23; i++) {
+            meterValueRepository.saveMeterValue(meterValuesFor2.get(i));
+        }
+
+    }
+    @Test
+    void testGetAll() throws Exception {
+        this.mockMvc.perform(get("/metermaid/api/meterdata/")).andDo(print()).andExpect(status().isOk())
+                .andExpect(content().string(containsString("test234")))
+                .andExpect(content().string(containsString("testing123")))
+                .andExpect(content().string(containsString("values")))
+                .andExpect(content().string(containsString(getListOfMeterDataForTesting().get(0).getFrom().plusSeconds(3600).toString())))
+        ;
+    }
 
     @Test
-    void creationWorksThroughAllLayers() throws Exception{
-        MeterDataWithValues testData = new MeterDataWithValues(
-                "2eaa222",
-                "nsd943",
+    void testGetByDate() throws Exception {
+        this.mockMvc.perform(get("/metermaid/api/meterdata/2018-08-09T00:00:00Z/2018-08-09T23:00:00Z/")).andDo(print()).andExpect(status().isOk())
+                .andExpect(content().string(containsString("test123")))
+                .andExpect(content().string(containsString("testing123")))
+                .andExpect(content().string(containsString("values")))
+                .andExpect(content().string(not(containsString("test234"))))
+                .andExpect(content().string(containsString(getListOfMeterDataForTesting().get(0).getFrom().plusSeconds(3600).toString())))
+
+        ;
+    }
+
+    @Test
+    void testGetByDateAndMeterID() throws Exception{
+        this.mockMvc.perform(get("/metermaid/api/meterdata/2018-08-10T00:00:00Z/2018-08-10T23:00:00Z/meterid:test234/")).andDo(print()).andExpect(status().isOk())
+                .andExpect(content().string(containsString("Sum for meter: test234, in period: 2018-08-10T00:00:00Z to: 2018-08-10T23:00:00Z")))
+                .andExpect(jsonPath("$.sum").value(greaterThan(0.1)))
+        ;
+    }
+
+    @Test
+    void testGetByDateAndCustomerId() throws Exception{
+        this.mockMvc.perform(get("/metermaid/api/meterdata/2018-08-09T00:00:00Z/2018-08-10T23:00:00Z/customerid:testing123/")).andDo(print()).andExpect(status().isOk())
+                .andExpect(content().string(containsString("Sum for customer: testing123, in period: 2018-08-09T00:00:00Z to: 2018-08-10T23:00:00Z")))
+                .andExpect(jsonPath("$.sum").value(greaterThan(0.1)))
+        ;
+    }
+
+    @Test
+    void testSaveMeterDataWithValues() throws Exception {
+        mockMvc.perform( MockMvcRequestBuilders
+                .post("/metermaid/api/meterdata/")
+                .content(returnJsonStringForCreationTesting())
+                .characterEncoding("utf-8")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.from").value("2019-08-09T00:00:00Z"))
+                .andExpect(jsonPath("$.to").value("2019-08-09T23:00:00Z"))
+                .andExpect(jsonPath("$.customer_id").value("123fff"))
+                .andExpect(jsonPath("$.values").isNotEmpty())
+        ;
+    }
+
+    private List<MeterData> getListOfMeterDataForTesting(){
+        MeterData meterdata1 = new MeterData(
+                UUID.fromString("90314011-6a7a-42cc-93ef-e22627db5043"),
+                "test123",
+                "testing123",
                 "Hour",
-                Instant.parse("2018-08-15T00:00:00Z"),
-                Instant.parse("2018-08-15T23:00:00Z"),
-                new HashMap<Instant, Double>()
+                Instant.parse("2018-08-09T00:00:00Z"),
+                Instant.parse("2018-08-09T23:00:00Z")
         );
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T01:00:00Z"), 12.3));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T02:00:00Z"), 13.5));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T03:00:00Z"), 15.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T04:00:00Z"), 16.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T05:00:00Z"), 20.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T06:00:00Z"), 30.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T07:00:00Z"), 35.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T08:00:00Z"), 45.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T09:00:00Z"), 22.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T10:00:00Z"), 24.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T11:00:00Z"), 15.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T12:00:00Z"), 17.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T13:00:00Z"), 18.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T14:00:00Z"), 19.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T15:00:00Z"), 40.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T16:00:00Z"), 50.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T17:00:00Z"), 60.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T18:00:00Z"), 67.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T19:00:00Z"), 73.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T20:00:00Z"), 55.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T21:00:00Z"), 58.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T22:00:00Z"), 40.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T23:00:00Z"), 25.4));
-        testData.addValues(new MeterValue(testData.getId(), testData.getMeter_id(), testData.getCustomer_id(),Instant.parse("2018-08-15T00:00:00Z"), 12.4));
+        MeterData meterdata2 = new MeterData(
+                UUID.fromString("0d848322-6d7d-42de-b914-595ed2c9d7ff"),
+                "test234",
+                "testing123",
+                "Hour",
+                Instant.parse("2018-08-10T00:00:00Z"),
+                Instant.parse("2018-08-10T23:00:00Z")
+        );
+        MeterData meterdata3 = new MeterData(
+                UUID.fromString("95814421-257e-4657-9316-60054e55d246"),
+                "test345",
+                "testing234",
+                "Hour",
+                Instant.parse("2018-08-11T00:00:00Z"),
+                Instant.parse("2018-08-11T23:00:00Z")
+        );
+        List<MeterData> listOfMeterData = new ArrayList<MeterData>();
+        listOfMeterData.add(meterdata1);
+        listOfMeterData.add(meterdata2);
+        listOfMeterData.add(meterdata3);
+        return listOfMeterData;
+    }
 
+    private List<MeterValue> getListOfMeterValuesFromMeterDataForTesting(int meterDataTestValue){
+        List<MeterValue> meterValues = new ArrayList<>();
+        for (int i = 0; i < 23; i++) {
+            meterValues.add(new MeterValue(
+                    getListOfMeterDataForTesting().get(meterDataTestValue).getId(),
+                    getListOfMeterDataForTesting().get(meterDataTestValue).getMeter_id(),
+                    getListOfMeterDataForTesting().get(meterDataTestValue).getCustomer_id(),
+                    getListOfMeterDataForTesting().get(meterDataTestValue).getFrom().plusSeconds(3600*i),
+                    getRandomDouble().doubleValue()
+            ));
+        }
+        return meterValues;
 
-        MvcResult result =  mockMvc.perform(post(("/metermaid/api/meterdata"))
-                .contentType("application/json")
-        .content(objectMapper.writeValueAsString(testData))).andExpect(status().isOk()).andReturn();
-
-        String content = result.getResponse().getContentAsString();
-
-        Assert.assertEquals(testData, content);
+    }
+    private Double getRandomDouble(){
+        Random r = new Random();
+        return (5 + (70 - 5) * r.nextDouble());
+    }
+    private String returnJsonStringForCreationTesting() throws Exception{
+        return new JSONObject()
+                .put("id", "97109855-b6e3-46b0-a6a1-dcc44aeb4ebf")
+                .put("meter_id", "123hhh")
+                .put("customer_id", "123fff")
+                .put("resolution", "Hour")
+                .put("from", "2019-08-09T00:00:00Z")
+                .put("to", "2019-08-09T23:00:00Z")
+                .put("values", new JSONObject() //, , 16.4, 70.4, 45.4, 35.4, 20.4, 23.4, 12.4, 12.4,35.4, 55.4, 7.4, 45.4,32.4, 55.4,7.4,6.5,22.4,12.4
+                        .put("2019-08-09T00:00:00Z", 85.4)
+                        .put("2019-08-09T01:00:00Z", 45.4)
+                        .put("2019-08-09T02:00:00Z", 50.4)
+                        .put("2019-08-09T03:00:00Z", 22.5)
+                        .put("2019-08-09T04:00:00Z", 12.4)
+                        .put("2019-08-09T05:00:00Z", 12.4)
+                        .put("2019-08-09T06:00:00Z", 16.4)
+                        .put("2019-08-09T07:00:00Z", 70.4)
+                        .put("2019-08-09T08:00:00Z", 45.4)
+                        .put("2019-08-09T09:00:00Z", 35.4)
+                        .put("2019-08-09T10:00:00Z", 20.4)
+                        .put("2019-08-09T11:00:00Z", 23.4)
+                        .put("2019-08-09T12:00:00Z", 12.4)
+                        .put("2019-08-09T13:00:00Z", 12.4)
+                        .put("2019-08-09T14:00:00Z", 35.4)
+                        .put("2019-08-09T15:00:00Z", 55.4)
+                        .put("2019-08-09T16:00:00Z", 7.4)
+                        .put("2019-08-09T17:00:00Z", 45.4)
+                        .put("2019-08-09T18:00:00Z", 32.4)
+                        .put("2019-08-09T19:00:00Z", 55.4)
+                        .put("2019-08-09T20:00:00Z", 7.4)
+                        .put("2019-08-09T21:00:00Z", 6.5)
+                        .put("2019-08-09T22:00:00Z", 22.4)
+                        .put("2019-08-09T23:00:00Z", 12.4)).toString();
     }
 
 }

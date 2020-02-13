@@ -8,7 +8,7 @@ public class MeterValue {
     private UUID id;
     private UUID meterDataId;
     private String meterId;
-    private String userId;
+    private String customerId;
     private Instant hour;
     private double value;
 
@@ -16,19 +16,19 @@ public class MeterValue {
     public MeterValue(){
     }
 
-    public MeterValue(UUID id, UUID meterDataId, String meterId, String userId, Instant hour, double value) {
+    public MeterValue(UUID id, UUID meterDataId, String meterId, String customerId, Instant hour, double value) {
         this.id = id;
         this.meterDataId = meterDataId;
         this.meterId = meterId;
-        this.userId = userId;
+        this.customerId = customerId;
         this.hour = hour;
         this.value = value;
     }
-    public MeterValue(UUID meterDataId, String meterId, String userId, Instant hour, double value) {
+    public MeterValue(UUID meterDataId, String meterId, String customerId, Instant hour, double value) {
         this.id = UUID.randomUUID();
         this.meterDataId = meterDataId;
         this.meterId = meterId;
-        this.userId = userId;
+        this.customerId = customerId;
         this.hour = hour;
         this.value = value;
     }
@@ -57,12 +57,12 @@ public class MeterValue {
         this.meterId = meterId;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getCustomerId() {
+        return customerId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
     }
 
     public Instant getHour() {

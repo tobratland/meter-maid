@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public class MeterValueRespository implements IMeterValueRepository {
+public class MeterValueRepository implements IMeterValueRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -24,7 +24,7 @@ public class MeterValueRespository implements IMeterValueRepository {
 
     @Override
     public List<MeterValue> meterValueByCustomerId(String id) {
-        String sql = "select * from metervalues where customerid = ?";
+        String sql = "select * from metervalues where userid = ?";
         return  jdbcTemplate.query(sql, new Object[]{id},((rs, rowNum) -> new MeterValue(
                 (UUID) rs.getObject("id"),
                 (UUID) rs.getObject("meterdataid"),
@@ -50,8 +50,10 @@ public class MeterValueRespository implements IMeterValueRepository {
 
     @Override
     public List<MeterValue> meterValueByDates(Instant from, Instant to) {
+        Timestamp fromtime =java.sql.Timestamp.from(from);
+        Timestamp totime =java.sql.Timestamp.from(to);
         String sql = "select * from metervalues where hour >= ? and hour <= ?";
-        return  jdbcTemplate.query(sql, new Object[]{from, to},((rs, rowNum) -> new MeterValue(
+        return  jdbcTemplate.query(sql, new Object[]{fromtime, totime},((rs, rowNum) -> new MeterValue(
                 (UUID) rs.getObject("id"),
                 (UUID) rs.getObject("meterdataid"),
                 rs.getString("meterid"),
@@ -62,7 +64,7 @@ public class MeterValueRespository implements IMeterValueRepository {
     }
 
     @Override
-    public List<MeterValue> getMeterValueFromDateToDateByUserId(Instant from, Instant to, String id) {
+    public List<MeterValue> getMeterValueFromDateToDateByCustomerId(Instant from, Instant to, String id) {
         Timestamp fromtime =java.sql.Timestamp.from(from);
         Timestamp totime =java.sql.Timestamp.from(to);
         String sql = "select * from metervalues where hour >= ? and hour <= ? and userid = ?";
@@ -96,7 +98,7 @@ public class MeterValueRespository implements IMeterValueRepository {
         Timestamp hour =java.sql.Timestamp.from(value.getHour());
         jdbcTemplate.update(
                 "insert into metervalues(id, meterdataid, meterid, userid, hour, value) values(?,?,?,?,?,?)",
-                value.getId(), value.getMeterDataId(), value.getMeterId(), value.getUserId(),hour, value.getValue());
+                value.getId(), value.getMeterDataId(), value.getMeterId(), value.getCustomerId(),hour, value.getValue());
 
         String newSql = "select * from metervalues where id = ? limit 1";
         return jdbcTemplate.queryForObject(newSql, new Object[]{value.getId()}, ((rs, rowNum) ->

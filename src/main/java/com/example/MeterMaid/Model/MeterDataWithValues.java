@@ -7,6 +7,7 @@ public class MeterDataWithValues extends MeterData{
     private Map<Instant, Double> values;
 
     public MeterDataWithValues(){}
+
     public MeterDataWithValues(String meter_id, String customer_id, String resolution, Instant from, Instant to, Map<Instant, Double> values) {
         super(meter_id,customer_id,resolution,from,to);
         this.values = values;

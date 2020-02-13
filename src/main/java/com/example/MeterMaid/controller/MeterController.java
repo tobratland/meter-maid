@@ -5,7 +5,7 @@ import com.example.MeterMaid.Model.MeterDataWithValues;
 import com.example.MeterMaid.Model.MeterSum;
 import com.example.MeterMaid.Model.MeterValue;
 import com.example.MeterMaid.dao.MeterDataRepository;
-import com.example.MeterMaid.dao.MeterValueRespository;
+import com.example.MeterMaid.dao.MeterValueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +23,14 @@ public class MeterController {
     MeterDataRepository meterDataRepository;
 
     @Autowired
-    MeterValueRespository meterValueRespository;
+    MeterValueRepository meterValueRepository;
 
     @PostMapping("/meterdata/")
     public ResponseEntity<MeterDataWithValues> saveMeterDataAndValues(@RequestBody @Valid MeterDataWithValues meterDataWithValues){
-
         try{
-            meterDataWithValues.setId(UUID.randomUUID());
+            if(meterDataWithValues.getId() == null){
+                meterDataWithValues.setId(UUID.randomUUID());
+            }
             MeterData meterData = new MeterData(meterDataWithValues);
             MeterData returnedMeterData = meterDataRepository.SaveMeterData(meterData);
             Map<Instant, Double> returnedMap = new HashMap<>();
@@ -41,15 +42,15 @@ public class MeterController {
                         entry.getKey(),
                         entry.getValue()
                 );
-                MeterValue returnedMeterValue = meterValueRespository.saveMeterValue(meterValue);
+                MeterValue returnedMeterValue = meterValueRepository.saveMeterValue(meterValue);
                 returnedMap.put(returnedMeterValue.getHour(),returnedMeterValue.getValue());
             }
             MeterDataWithValues returnedMeterDataWithValues = new MeterDataWithValues(meterData, returnedMap);
-        return new ResponseEntity<>(returnedMeterDataWithValues, HttpStatus.OK);
+        return new ResponseEntity<>(returnedMeterDataWithValues, HttpStatus.CREATED);
 
         }catch(Exception ex){
             return new ResponseEntity(
-                    ex.getMessage(),
+                    ex,
                     HttpStatus.BAD_REQUEST);
         }
 
@@ -64,7 +65,7 @@ public class MeterController {
                         returnedMeterData.get(i),
                         new HashMap<Instant, Double>()
                 );
-                List<MeterValue> returnedMeterValues = meterValueRespository.getMeterValuesByMeterDataId(returnedMeterData.get(i).getId());
+                List<MeterValue> returnedMeterValues = meterValueRepository.getMeterValuesByMeterDataId(returnedMeterData.get(i).getId());
                 for (int j = 0; j < returnedMeterValues.size(); j++) {
                     returnedMeterDataWithValues.addValues(returnedMeterValues.get(j));
                 }
@@ -87,7 +88,7 @@ public class MeterController {
                     returnedMeterData.get(i),
                     new HashMap<Instant, Double>()
             );
-            List<MeterValue> returnedMeterValues = meterValueRespository.getMeterValuesByMeterDataId(returnedMeterData.get(i).getId());
+            List<MeterValue> returnedMeterValues = meterValueRepository.getMeterValuesByMeterDataId(returnedMeterData.get(i).getId());
             for (int j = 0; j < returnedMeterValues.size(); j++) {
                 returnedMeterDataWithValues.addValues(returnedMeterValues.get(j));
             }
@@ -106,7 +107,7 @@ public class MeterController {
             meterSum.setTo(to);
             meterSum.setId(id);
             meterSum.setTypeOfSum("Sum for meter: " + id + ", in period: " + from.toString() + " to: " + to.toString() + ".");
-            List<MeterValue> returnedMeterValues = meterValueRespository.getMeterValueFromDateToDateByMeterId(from, to, id);
+            List<MeterValue> returnedMeterValues = meterValueRepository.getMeterValueFromDateToDateByMeterId(from, to, id);
             for (int i = 0; i < returnedMeterValues.size(); i++) {
                 meterSum.addSum(returnedMeterValues.get(i).getValue());
             }
@@ -127,10 +128,9 @@ public class MeterController {
             meterSum.setId(id);
             meterSum.setTypeOfSum("Sum for customer: " + id + ", in period: " + from.toString() + " to: " + to.toString() + ".");
 
-            List<MeterValue> returnedMeterValues = meterValueRespository.getMeterValueFromDateToDateByUserId(from, to, id);
+            List<MeterValue> returnedMeterValues = meterValueRepository.getMeterValueFromDateToDateByCustomerId(from, to, id);
             for (int i = 0; i < returnedMeterValues.size(); i++) {
                 meterSum.addSum(returnedMeterValues.get(i).getValue());
-                System.out.println(returnedMeterValues.get(i).getValue());
             }
 
             return new ResponseEntity<>(meterSum, HttpStatus.OK);
