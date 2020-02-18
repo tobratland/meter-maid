@@ -1,7 +1,7 @@
-package com.example.MeterMaid.dao;
+package com.example.meterMaid.dao;
 
-import com.example.MeterMaid.Model.MeterData;
-import com.example.MeterMaid.contracts.IMeterDataRepository;
+import com.example.meterMaid.Model.MeterData;
+import com.example.meterMaid.contracts.MeterDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public class MeterDataRepository implements IMeterDataRepository {
+public class MeterDataRepositoryImpl implements MeterDataRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -22,7 +22,7 @@ public class MeterDataRepository implements IMeterDataRepository {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
     @Override
-    public List<MeterData> GetAll() {
+    public List<MeterData> getAll() {
         String sql = "select * from meterdata";
         return jdbcTemplate.query(
                 sql,
@@ -38,7 +38,7 @@ public class MeterDataRepository implements IMeterDataRepository {
     }
 
     @Override
-    public List<MeterData> GetMeterDataFromDateToDate(Instant from, Instant to) {
+    public List<MeterData> getMeterDataFromDateToDate(Instant from, Instant to) {
         Timestamp fromtime =java.sql.Timestamp.from(from);
         Timestamp totime =java.sql.Timestamp.from(to);
         String sql = "select * from meterdata where fromtime >= ? and totime <= ?";
@@ -53,7 +53,7 @@ public class MeterDataRepository implements IMeterDataRepository {
     }
 
     @Override
-    public MeterData GetMeterDataById(UUID id) {
+    public MeterData getMeterDataById(UUID id) {
         String sql = "select * from meterData where id = ? limit 1";
         return jdbcTemplate.queryForObject(sql, new Object[]{id}, ((rs, rowNum) ->
                 new MeterData(
@@ -68,7 +68,7 @@ public class MeterDataRepository implements IMeterDataRepository {
     }
 
     @Override
-    public MeterData SaveMeterData(MeterData meterData) {
+    public MeterData saveMeterData(MeterData meterData) {
         Timestamp from =java.sql.Timestamp.from(meterData.getFrom());
         Timestamp to =java.sql.Timestamp.from(meterData.getTo());
         jdbcTemplate.update(

@@ -1,11 +1,11 @@
-package com.example.MeterMaid.controller;
+package com.example.meterMaid.controller;
 
-import com.example.MeterMaid.Model.MeterData;
-import com.example.MeterMaid.Model.MeterDataWithValues;
-import com.example.MeterMaid.Model.MeterSum;
-import com.example.MeterMaid.Model.MeterValue;
-import com.example.MeterMaid.dao.MeterDataRepository;
-import com.example.MeterMaid.dao.MeterValueRepository;
+import com.example.meterMaid.Model.MeterData;
+import com.example.meterMaid.Model.MeterDataWithValues;
+import com.example.meterMaid.Model.MeterSum;
+import com.example.meterMaid.Model.MeterValue;
+import com.example.meterMaid.dao.MeterDataRepositoryImpl;
+import com.example.meterMaid.dao.MeterValueRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +20,10 @@ import java.util.*;
 @RequestMapping("/metermaid/api")
 public class MeterController {
     @Autowired
-    MeterDataRepository meterDataRepository;
+    MeterDataRepositoryImpl meterDataRepositoryImpl;
 
     @Autowired
-    MeterValueRepository meterValueRepository;
+    MeterValueRepositoryImpl meterValueRepositoryImpl;
 
     @PostMapping("/meterdata/")
     public ResponseEntity<MeterDataWithValues> saveMeterDataAndValues(@RequestBody @Valid MeterDataWithValues meterDataWithValues){
@@ -32,7 +32,7 @@ public class MeterController {
                 meterDataWithValues.setId(UUID.randomUUID());
             }
             MeterData meterData = new MeterData(meterDataWithValues);
-            MeterData returnedMeterData = meterDataRepository.SaveMeterData(meterData);
+            MeterData returnedMeterData = meterDataRepositoryImpl.saveMeterData(meterData);
             Map<Instant, Double> returnedMap = new HashMap<>();
             for (Map.Entry<Instant,Double> entry : meterDataWithValues.getValues().entrySet()){
                 MeterValue meterValue = new MeterValue(
@@ -42,7 +42,7 @@ public class MeterController {
                         entry.getKey(),
                         entry.getValue()
                 );
-                MeterValue returnedMeterValue = meterValueRepository.saveMeterValue(meterValue);
+                MeterValue returnedMeterValue = meterValueRepositoryImpl.saveMeterValue(meterValue);
                 returnedMap.put(returnedMeterValue.getHour(),returnedMeterValue.getValue());
             }
             MeterDataWithValues returnedMeterDataWithValues = new MeterDataWithValues(meterData, returnedMap);
@@ -59,13 +59,13 @@ public class MeterController {
     public ResponseEntity<List<MeterDataWithValues>> getAllMeterDataWithValues(){
         try{
             List<MeterDataWithValues> returnedMeterDataWithValueList = new ArrayList<>();
-            List<MeterData> returnedMeterData = meterDataRepository.GetAll();
+            List<MeterData> returnedMeterData = meterDataRepositoryImpl.getAll();
             for (int i = 0; i < returnedMeterData.size(); i++) {
                 MeterDataWithValues returnedMeterDataWithValues = new MeterDataWithValues(
                         returnedMeterData.get(i),
                         new HashMap<Instant, Double>()
                 );
-                List<MeterValue> returnedMeterValues = meterValueRepository.getMeterValuesByMeterDataId(returnedMeterData.get(i).getId());
+                List<MeterValue> returnedMeterValues = meterValueRepositoryImpl.getMeterValuesByMeterDataId(returnedMeterData.get(i).getId());
                 for (int j = 0; j < returnedMeterValues.size(); j++) {
                     returnedMeterDataWithValues.addValues(returnedMeterValues.get(j));
                 }
@@ -82,13 +82,13 @@ public class MeterController {
     @GetMapping("/meterdata/{from}/{to}/")
     public ResponseEntity<List<MeterDataWithValues>> getMeterDataWithValuesByDate(@PathVariable final Instant from, @PathVariable final Instant to){
         List<MeterDataWithValues> returnedMeterDataWithValueList = new ArrayList<>();
-        List<MeterData> returnedMeterData = meterDataRepository.GetMeterDataFromDateToDate(from, to);
+        List<MeterData> returnedMeterData = meterDataRepositoryImpl.getMeterDataFromDateToDate(from, to);
         for (int i = 0; i < returnedMeterData.size(); i++) {
             MeterDataWithValues returnedMeterDataWithValues = new MeterDataWithValues(
                     returnedMeterData.get(i),
                     new HashMap<Instant, Double>()
             );
-            List<MeterValue> returnedMeterValues = meterValueRepository.getMeterValuesByMeterDataId(returnedMeterData.get(i).getId());
+            List<MeterValue> returnedMeterValues = meterValueRepositoryImpl.getMeterValuesByMeterDataId(returnedMeterData.get(i).getId());
             for (int j = 0; j < returnedMeterValues.size(); j++) {
                 returnedMeterDataWithValues.addValues(returnedMeterValues.get(j));
             }
@@ -107,7 +107,7 @@ public class MeterController {
             meterSum.setTo(to);
             meterSum.setId(id);
             meterSum.setTypeOfSum("Sum for meter: " + id + ", in period: " + from.toString() + " to: " + to.toString() + ".");
-            List<MeterValue> returnedMeterValues = meterValueRepository.getMeterValueFromDateToDateByMeterId(from, to, id);
+            List<MeterValue> returnedMeterValues = meterValueRepositoryImpl.getMeterValueFromDateToDateByMeterId(from, to, id);
             for (int i = 0; i < returnedMeterValues.size(); i++) {
                 meterSum.addSum(returnedMeterValues.get(i).getValue());
             }
@@ -128,7 +128,7 @@ public class MeterController {
             meterSum.setId(id);
             meterSum.setTypeOfSum("Sum for customer: " + id + ", in period: " + from.toString() + " to: " + to.toString() + ".");
 
-            List<MeterValue> returnedMeterValues = meterValueRepository.getMeterValueFromDateToDateByCustomerId(from, to, id);
+            List<MeterValue> returnedMeterValues = meterValueRepositoryImpl.getMeterValueFromDateToDateByCustomerId(from, to, id);
             for (int i = 0; i < returnedMeterValues.size(); i++) {
                 meterSum.addSum(returnedMeterValues.get(i).getValue());
             }

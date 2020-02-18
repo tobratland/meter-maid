@@ -1,9 +1,9 @@
-package com.example.MeterMaid;
+package com.example.meterMaid;
 
-import com.example.MeterMaid.Model.MeterData;
-import com.example.MeterMaid.Model.MeterValue;
-import com.example.MeterMaid.dao.MeterDataRepository;
-import com.example.MeterMaid.dao.MeterValueRepository;
+import com.example.meterMaid.Model.MeterData;
+import com.example.meterMaid.Model.MeterValue;
+import com.example.meterMaid.dao.MeterDataRepositoryImpl;
+import com.example.meterMaid.dao.MeterValueRepositoryImpl;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,10 +40,10 @@ public class IntegrationTests {
     private MockMvc mockMvc;
 
     @Autowired
-    private MeterDataRepository meterDataRepository;
+    private MeterDataRepositoryImpl meterDataRepositoryImpl;
 
     @Autowired
-    private MeterValueRepository meterValueRepository;
+    private MeterValueRepositoryImpl meterValueRepositoryImpl;
 
 
     @BeforeEach
@@ -51,22 +51,22 @@ public class IntegrationTests {
         MeterData meterData0 = getListOfMeterDataForTesting().get(0);
         MeterData meterData1 = getListOfMeterDataForTesting().get(1);
 
-        meterDataRepository.SaveMeterData(meterData0);
-        meterDataRepository.SaveMeterData(meterData1);
+        meterDataRepositoryImpl.saveMeterData(meterData0);
+        meterDataRepositoryImpl.saveMeterData(meterData1);
         List<MeterValue> meterValuesFor0 = getListOfMeterValuesFromMeterDataForTesting(0);
         List<MeterValue> meterValuesFor1 = getListOfMeterValuesFromMeterDataForTesting(1);
         List<MeterValue> meterValuesFor2 = getListOfMeterValuesFromMeterDataForTesting(2);
         System.out.println(meterValuesFor0.get(1).getValue());
 
         for (int i = 0; i < 23; i++) {
-            meterValueRepository.saveMeterValue(meterValuesFor0.get(i));
+            meterValueRepositoryImpl.saveMeterValue(meterValuesFor0.get(i));
         }
 
         for (int i = 0; i < 23; i++) {
-            meterValueRepository.saveMeterValue(meterValuesFor1.get(i));
+            meterValueRepositoryImpl.saveMeterValue(meterValuesFor1.get(i));
         }
         for (int i = 0; i < 23; i++) {
-            meterValueRepository.saveMeterValue(meterValuesFor2.get(i));
+            meterValueRepositoryImpl.saveMeterValue(meterValuesFor2.get(i));
         }
 
     }

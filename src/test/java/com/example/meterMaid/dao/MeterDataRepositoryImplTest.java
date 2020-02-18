@@ -1,6 +1,6 @@
-package com.example.MeterMaid.dao;
+package com.example.meterMaid.dao;
 
-import com.example.MeterMaid.Model.MeterData;
+import com.example.meterMaid.Model.MeterData;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,35 +18,35 @@ import java.util.UUID;
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @Transactional
-class MeterDataRepositoryTest {
+class MeterDataRepositoryImplTest {
 
     @Autowired
-    private MeterDataRepository meterDataRepository;
+    private MeterDataRepositoryImpl meterDataRepositoryImpl;
 
     @BeforeEach
     @Transactional
     @Rollback(true)
     void setUp(){
-        meterDataRepository.SaveMeterData(meterData1);
-        meterDataRepository.SaveMeterData(meterData2);
+        meterDataRepositoryImpl.saveMeterData(meterData1);
+        meterDataRepositoryImpl.saveMeterData(meterData2);
     }
 
     @Test
     void getAll() throws Exception {
-        List<MeterData> meterDataList = meterDataRepository.GetAll();
+        List<MeterData> meterDataList = meterDataRepositoryImpl.getAll();
         Assert.assertEquals(meterDataList.size(), 2);
     }
 
     @Test
     void getMeterDataFromDateToDate() throws Exception {
-        List<MeterData> meterDataList =  meterDataRepository.GetMeterDataFromDateToDate(meterData1.getFrom(), meterData1.getTo());
+        List<MeterData> meterDataList =  meterDataRepositoryImpl.getMeterDataFromDateToDate(meterData1.getFrom(), meterData1.getTo());
         Assert.assertNotNull(meterDataList);
         Assert.assertEquals(meterDataList.get(0).getCustomer_id(), meterData1.getCustomer_id());
     }
 
     @Test
     void getMeterDataById() throws Exception {
-        MeterData meterData =  meterDataRepository.GetMeterDataById(meterData1.getId());
+        MeterData meterData =  meterDataRepositoryImpl.getMeterDataById(meterData1.getId());
         Assert.assertEquals(meterData.getCustomer_id(), meterData1.getCustomer_id());
         Assert.assertEquals(meterData.getId(), meterData1.getId());
         Assert.assertEquals(meterData.getMeter_id(), meterData1.getMeter_id());
@@ -58,20 +58,20 @@ class MeterDataRepositoryTest {
     @Transactional
     @Rollback(true)
     void saveMeterData() throws Exception{
-        MeterData savedMeterData = meterDataRepository.SaveMeterData(meterData3);
+        MeterData savedMeterData = meterDataRepositoryImpl.saveMeterData(meterData3);
         Assert.assertEquals(savedMeterData.getCustomer_id(), meterData3.getCustomer_id());
         Assert.assertEquals(savedMeterData.getId(), meterData3.getId());
     }
 
     @Test
     void getMeterDataFromDateToDateByMeterId() {
-        List<MeterData> meterDataList = meterDataRepository.getMeterDataFromDateToDateByMeterId(meterData2.getFrom(),meterData2.getTo(),meterData2.getMeter_id());
+        List<MeterData> meterDataList = meterDataRepositoryImpl.getMeterDataFromDateToDateByMeterId(meterData2.getFrom(),meterData2.getTo(),meterData2.getMeter_id());
         Assert.assertEquals(meterDataList.get(0).getId(), meterData2.getId());
     }
 
     @Test
     void getMeterDataFromDateToDateByCustomerId() {
-        List<MeterData> meterDataList = meterDataRepository.getMeterDataFromDateToDateByMeterId(meterData1.getFrom(),meterData1.getTo(),meterData1.getMeter_id());
+        List<MeterData> meterDataList = meterDataRepositoryImpl.getMeterDataFromDateToDateByMeterId(meterData1.getFrom(),meterData1.getTo(),meterData1.getMeter_id());
         Assert.assertEquals(meterDataList.get(0).getId(), meterData1.getId());
     }
 

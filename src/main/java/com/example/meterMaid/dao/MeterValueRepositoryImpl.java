@@ -1,7 +1,7 @@
-package com.example.MeterMaid.dao;
+package com.example.meterMaid.dao;
 
-import com.example.MeterMaid.Model.MeterValue;
-import com.example.MeterMaid.contracts.IMeterValueRepository;
+import com.example.meterMaid.Model.MeterValue;
+import com.example.meterMaid.contracts.MeterValueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public class MeterValueRepository implements IMeterValueRepository {
+public class MeterValueRepositoryImpl implements MeterValueRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 

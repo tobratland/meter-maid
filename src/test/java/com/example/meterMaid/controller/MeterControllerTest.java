@@ -1,10 +1,10 @@
-package com.example.MeterMaid.controller;
+package com.example.meterMaid.controller;
 
-import com.example.MeterMaid.Model.MeterData;
-import com.example.MeterMaid.Model.MeterDataWithValues;
-import com.example.MeterMaid.Model.MeterValue;
-import com.example.MeterMaid.dao.MeterDataRepository;
-import com.example.MeterMaid.dao.MeterValueRepository;
+import com.example.meterMaid.Model.MeterData;
+import com.example.meterMaid.Model.MeterDataWithValues;
+import com.example.meterMaid.Model.MeterValue;
+import com.example.meterMaid.dao.MeterDataRepositoryImpl;
+import com.example.meterMaid.dao.MeterValueRepositoryImpl;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,10 +39,10 @@ class MeterControllerTest {
     private MeterController meterController;
 
     @MockBean
-    private MeterDataRepository meterDataRepository;
+    private MeterDataRepositoryImpl meterDataRepositoryImpl;
 
     @MockBean
-    private MeterValueRepository meterValueRepository;
+    private MeterValueRepositoryImpl meterValueRepositoryImpl;
 
     @Test
     void contextLoads() {
@@ -50,10 +50,10 @@ class MeterControllerTest {
     @Test
     void getAllMeterData() throws Exception {
         List<MeterData> listOfMeterData = getListOfMeterData();
-        when(meterDataRepository.GetAll()).thenReturn(listOfMeterData);
-        when(meterValueRepository.getMeterValuesByMeterDataId(listOfMeterData.get(0).getId())).thenReturn(getListOfMeterValuesFromMeterData(0));
-        when(meterValueRepository.getMeterValuesByMeterDataId(listOfMeterData.get(1).getId())).thenReturn(getListOfMeterValuesFromMeterData(1));
-        when(meterValueRepository.getMeterValuesByMeterDataId(listOfMeterData.get(2).getId())).thenReturn(getListOfMeterValuesFromMeterData(2));
+        when(meterDataRepositoryImpl.getAll()).thenReturn(listOfMeterData);
+        when(meterValueRepositoryImpl.getMeterValuesByMeterDataId(listOfMeterData.get(0).getId())).thenReturn(getListOfMeterValuesFromMeterData(0));
+        when(meterValueRepositoryImpl.getMeterValuesByMeterDataId(listOfMeterData.get(1).getId())).thenReturn(getListOfMeterValuesFromMeterData(1));
+        when(meterValueRepositoryImpl.getMeterValuesByMeterDataId(listOfMeterData.get(2).getId())).thenReturn(getListOfMeterValuesFromMeterData(2));
 
         mockMvc.perform(get("/metermaid/api/meterdata/")
                 .contentType(MediaType.APPLICATION_JSON))
@@ -70,8 +70,8 @@ class MeterControllerTest {
         listOfMeterData.remove(0);
         listOfMeterData.remove(1);
 
-        when(meterDataRepository.GetMeterDataFromDateToDate(Instant.parse("2018-08-10T00:00:00Z"), Instant.parse("2018-08-10T23:00:00Z"))).thenReturn(listOfMeterData);
-        when(meterValueRepository.getMeterValuesByMeterDataId(listOfMeterData.get(0).getId())).thenReturn(getListOfMeterValuesFromMeterData(0));
+        when(meterDataRepositoryImpl.getMeterDataFromDateToDate(Instant.parse("2018-08-10T00:00:00Z"), Instant.parse("2018-08-10T23:00:00Z"))).thenReturn(listOfMeterData);
+        when(meterValueRepositoryImpl.getMeterValuesByMeterDataId(listOfMeterData.get(0).getId())).thenReturn(getListOfMeterValuesFromMeterData(0));
 
         mockMvc.perform(get("/metermaid/api/meterdata/2018-08-10T00:00:00Z/2018-08-10T23:00:00Z/")
                 .contentType(MediaType.APPLICATION_JSON))
@@ -90,8 +90,8 @@ class MeterControllerTest {
         List<MeterValue> listOfMeterValues = getListOfMeterValuesFromMeterData(0);
         double sumOfValues = getSumOfValues(listOfMeterValues);
         System.out.println(sumOfValues);
-        when(meterDataRepository.getMeterDataFromDateToDateByMeterId(Instant.parse("2018-08-09T00:00:00Z"), Instant.parse("2018-08-09T23:00:00Z"),"test123")).thenReturn(listOfMeterData);
-        when(meterValueRepository.getMeterValueFromDateToDateByMeterId(Instant.parse("2018-08-09T00:00:00Z"), Instant.parse("2018-08-09T23:00:00Z"),"test123")).thenReturn(listOfMeterValues);
+        when(meterDataRepositoryImpl.getMeterDataFromDateToDateByMeterId(Instant.parse("2018-08-09T00:00:00Z"), Instant.parse("2018-08-09T23:00:00Z"),"test123")).thenReturn(listOfMeterData);
+        when(meterValueRepositoryImpl.getMeterValueFromDateToDateByMeterId(Instant.parse("2018-08-09T00:00:00Z"), Instant.parse("2018-08-09T23:00:00Z"),"test123")).thenReturn(listOfMeterValues);
 
 
         mockMvc.perform(get("/metermaid/api/meterdata/2018-08-09T00:00:00Z/2018-08-09T23:00:00Z/meterid:test123/")
@@ -116,7 +116,7 @@ class MeterControllerTest {
         double sumOfValues = getSumOfValues(listOfMeterValues);
 
 
-        when(meterValueRepository.getMeterValueFromDateToDateByCustomerId(Instant.parse("2018-08-09T00:00:00Z"), Instant.parse("2018-08-09T23:00:00Z"),"testing123")).thenReturn(listOfMeterValues);
+        when(meterValueRepositoryImpl.getMeterValueFromDateToDateByCustomerId(Instant.parse("2018-08-09T00:00:00Z"), Instant.parse("2018-08-09T23:00:00Z"),"testing123")).thenReturn(listOfMeterValues);
 
         mockMvc.perform(get("/metermaid/api/meterdata/2018-08-09T00:00:00Z/2018-08-09T23:00:00Z/customerid:testing123/")
                 .contentType(MediaType.APPLICATION_JSON))
@@ -136,11 +136,11 @@ class MeterControllerTest {
         MeterData expectedReturnedMeterData = new MeterData(returnExpectedJsonMeterDataWithValues());
         List<MeterValue> expectedReturnedMeterValues = returnExpectedMeterValuesFromJson();
 
-        when(meterDataRepository.SaveMeterData((MeterData) notNull())).thenReturn(expectedReturnedMeterData);
+        when(meterDataRepositoryImpl.saveMeterData((MeterData) notNull())).thenReturn(expectedReturnedMeterData);
 
 
         for (int i = 0; i <returnExpectedMeterValuesFromJson().size() ; i++) {
-            when(meterValueRepository.saveMeterValue((MeterValue)notNull())).thenReturn(expectedReturnedMeterValues.get(1));
+            when(meterValueRepositoryImpl.saveMeterValue((MeterValue)notNull())).thenReturn(expectedReturnedMeterValues.get(1));
         }
 
 

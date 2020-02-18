@@ -1,4 +1,4 @@
-package com.example.MeterMaid.Model;
+package com.example.meterMaid.Model;
 
 import java.time.Instant;
 import java.util.Map;

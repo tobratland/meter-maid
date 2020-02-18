@@ -1,6 +1,6 @@
-package com.example.MeterMaid.dao;
+package com.example.meterMaid.dao;
 
-import com.example.MeterMaid.Model.MeterValue;
+import com.example.meterMaid.Model.MeterValue;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,36 +18,36 @@ import java.util.UUID;
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @Transactional
-class MeterValueRepositoryTest {
+class MeterValueRepositoryImplTest {
 
     @Autowired
-    private MeterValueRepository meterValueRepository;
+    private MeterValueRepositoryImpl meterValueRepositoryImpl;
 
     @BeforeEach
     @Transactional
     @Rollback(true)
     void setUp(){
-        meterValueRepository.saveMeterValue(meterValue1);
-        meterValueRepository.saveMeterValue(meterValue2);
-        meterValueRepository.saveMeterValue(meterValue3);
+        meterValueRepositoryImpl.saveMeterValue(meterValue1);
+        meterValueRepositoryImpl.saveMeterValue(meterValue2);
+        meterValueRepositoryImpl.saveMeterValue(meterValue3);
     }
 
     @Test
     void meterValueByCustomerId() {
-        List<MeterValue> meterValueList =  meterValueRepository.meterValueByCustomerId("testing123");
+        List<MeterValue> meterValueList =  meterValueRepositoryImpl.meterValueByCustomerId("testing123");
         Assert.assertEquals(meterValueList.size(), 3);
     }
 
     @Test
     void getMeterValuesByMeterDataId() {
-        List<MeterValue> meterValueList = meterValueRepository.getMeterValuesByMeterDataId(UUID.fromString("7c6d61a3-faa4-466e-82ed-a6f21df31878"));
+        List<MeterValue> meterValueList = meterValueRepositoryImpl.getMeterValuesByMeterDataId(UUID.fromString("7c6d61a3-faa4-466e-82ed-a6f21df31878"));
         Assert.assertEquals(meterValueList.size(), 2);
         Assert.assertTrue(meterValueList.get(1).getMeterId().equals(meterValue1.getMeterId()) || meterValueList.get(1).getMeterId().equals(meterValue2.getMeterId()));
     }
 
     @Test
     void meterValueByDates() {
-        List<MeterValue> meterValuesList = meterValueRepository.meterValueByDates(Instant.parse("1900-08-09T00:00:00Z"), Instant.parse("1900-08-11T00:00:00Z"));
+        List<MeterValue> meterValuesList = meterValueRepositoryImpl.meterValueByDates(Instant.parse("1900-08-09T00:00:00Z"), Instant.parse("1900-08-11T00:00:00Z"));
         Assert.assertEquals(meterValuesList.size(), 3);
         Assert.assertTrue(meterValuesList.get(1).getMeterId().equals(meterValue1.getMeterId()) || meterValuesList.get(1).getMeterId().equals(meterValue2.getMeterId()) || meterValuesList.get(1).getMeterId().equals(meterValue2.getMeterId()));
 
@@ -55,7 +55,7 @@ class MeterValueRepositoryTest {
 
     @Test
     void getMeterValueFromDateToDateByCustomerId() {
-        List<MeterValue> meterValueList = meterValueRepository.getMeterValueFromDateToDateByCustomerId(Instant.parse("1900-08-11T00:00:00Z"),Instant.parse("1900-08-11T00:01:00Z"),"testing123");
+        List<MeterValue> meterValueList = meterValueRepositoryImpl.getMeterValueFromDateToDateByCustomerId(Instant.parse("1900-08-11T00:00:00Z"),Instant.parse("1900-08-11T00:01:00Z"),"testing123");
         Assert.assertEquals(meterValueList.size(), 1);
         Assert.assertTrue(meterValueList.get(0).getMeterId().equals(meterValue3.getMeterId()));
 
@@ -63,7 +63,7 @@ class MeterValueRepositoryTest {
 
     @Test
     void getMeterValueFromDateToDateByMeterId() {
-        List<MeterValue> meterValueList = meterValueRepository.getMeterValueFromDateToDateByMeterId(Instant.parse("1900-08-11T00:00:00Z"),Instant.parse("1900-08-11T00:01:00Z"),"test234");
+        List<MeterValue> meterValueList = meterValueRepositoryImpl.getMeterValueFromDateToDateByMeterId(Instant.parse("1900-08-11T00:00:00Z"),Instant.parse("1900-08-11T00:01:00Z"),"test234");
         Assert.assertEquals(meterValueList.size(), 1);
         Assert.assertTrue(meterValueList.get(0).getCustomerId().equals(meterValue3.getCustomerId()));
 
@@ -71,7 +71,7 @@ class MeterValueRepositoryTest {
 
     @Test
     void saveMeterValue() {
-        MeterValue meterValue = meterValueRepository.saveMeterValue(meterValue4);
+        MeterValue meterValue = meterValueRepositoryImpl.saveMeterValue(meterValue4);
         Assert.assertTrue(meterValue.getId().equals(meterValue4.getId()));
         Assert.assertTrue(meterValue.getCustomerId().equals(meterValue4.getCustomerId()));
         Assert.assertTrue(meterValue.getValue() == meterValue4.getValue());
