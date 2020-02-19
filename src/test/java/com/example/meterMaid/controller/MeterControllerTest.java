@@ -136,12 +136,8 @@ class MeterControllerTest {
         MeterData expectedReturnedMeterData = new MeterData(returnExpectedJsonMeterDataWithValues());
         List<MeterValue> expectedReturnedMeterValues = returnExpectedMeterValuesFromJson();
 
-        when(meterDataRepositoryImpl.saveMeterData((MeterData) notNull())).thenReturn(expectedReturnedMeterData);
-
-
-        for (int i = 0; i <returnExpectedMeterValuesFromJson().size() ; i++) {
-            when(meterValueRepositoryImpl.saveMeterValue((MeterValue)notNull())).thenReturn(expectedReturnedMeterValues.get(1));
-        }
+        when(meterDataRepositoryImpl.saveMeterData(notNull())).thenReturn(expectedReturnedMeterData);
+        when(meterValueRepositoryImpl.saveMeterValues(notNull())).thenReturn(expectedReturnedMeterValues);
 
 
 

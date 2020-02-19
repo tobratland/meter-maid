@@ -22,6 +22,7 @@ public class MeterDataWithValues extends MeterData{
         this.values = values;
     }
 
+
     public Map<Instant, Double> getValues() {
         return values;
     }

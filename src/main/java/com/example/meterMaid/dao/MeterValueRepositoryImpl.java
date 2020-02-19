@@ -9,7 +9,9 @@ import org.springframework.stereotype.Repository;
 import javax.sql.DataSource;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Repository
@@ -94,22 +96,37 @@ public class MeterValueRepositoryImpl implements MeterValueRepository {
     }
 
     @Override
-    public MeterValue saveMeterValue(MeterValue value) {
-        Timestamp hour =java.sql.Timestamp.from(value.getHour());
-        jdbcTemplate.update(
+    public List<MeterValue> saveMeterValues(List<MeterValue> values) {
+        List<Object[]> batch = new ArrayList<Object[]>();
+        for (MeterValue value: values){
+            Object[] valuesForInsertion = new Object[]{
+              value.getId(),
+              value.getMeterDataId(),
+              value.getMeterId(),
+              value.getCustomerId(),
+              java.sql.Timestamp.from(value.getHour()),
+              value.getValue()
+            };
+            batch.add(valuesForInsertion);
+        }
+        jdbcTemplate.batchUpdate(
                 "insert into metervalues(id, meterdataid, meterid, userid, hour, value) values(?,?,?,?,?,?)",
-                value.getId(), value.getMeterDataId(), value.getMeterId(), value.getCustomerId(),hour, value.getValue());
+                batch);
 
-        String newSql = "select * from metervalues where id = ? limit 1";
-        return jdbcTemplate.queryForObject(newSql, new Object[]{value.getId()}, ((rs, rowNum) ->
-                new MeterValue(
-                        (UUID) rs.getObject("id"),
-                        (UUID) rs.getObject("meterdataid"),
-                        rs.getString("meterid"),
-                        rs.getString("userid"),
-                        rs.getTimestamp("hour").toInstant(),
-                        rs.getDouble("value")
-                )
-        ));
+        String newSql = "select * from metervalues where meterdataid = ?";
+        List<MeterValue> returnedMeterValues = new ArrayList<>();
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(newSql, values.get(0).getMeterDataId());
+        for (Map row : rows) {
+            MeterValue savedMeterValue = new MeterValue();
+            savedMeterValue.setId(((UUID) row.get("id")));
+            savedMeterValue.setMeterDataId((UUID) row.get("meterdataid"));
+            savedMeterValue.setMeterId((String) row.get("meterid"));
+            savedMeterValue.setCustomerId((String) row.get("userid"));
+            Timestamp hour = (Timestamp) row.get("hour");
+            savedMeterValue.setHour(hour.toInstant());
+            savedMeterValue.setValue((Double) row.get("value"));
+            returnedMeterValues.add(savedMeterValue);
+        }
+        return returnedMeterValues;
     }
 }

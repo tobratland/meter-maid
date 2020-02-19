@@ -14,5 +14,5 @@ public interface MeterValueRepository {
     List<MeterValue> meterValueByDates(Instant from, Instant to);
     List<MeterValue> getMeterValueFromDateToDateByCustomerId(Instant from, Instant to, String id);
     List<MeterValue> getMeterValueFromDateToDateByMeterId(Instant from, Instant to, String id);
-    MeterValue saveMeterValue(MeterValue value);
+    List<MeterValue> saveMeterValues(List<MeterValue> values);
 }

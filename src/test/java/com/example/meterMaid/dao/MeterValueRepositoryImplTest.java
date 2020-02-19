@@ -12,6 +12,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,9 +28,12 @@ class MeterValueRepositoryImplTest {
     @Transactional
     @Rollback(true)
     void setUp(){
-        meterValueRepositoryImpl.saveMeterValue(meterValue1);
-        meterValueRepositoryImpl.saveMeterValue(meterValue2);
-        meterValueRepositoryImpl.saveMeterValue(meterValue3);
+        List<MeterValue> values = new ArrayList<>();
+        values.add(meterValue1);
+        values.add(meterValue2);
+        values.add(meterValue3);
+
+        meterValueRepositoryImpl.saveMeterValues(values);
     }
 
     @Test
@@ -71,10 +75,12 @@ class MeterValueRepositoryImplTest {
 
     @Test
     void saveMeterValue() {
-        MeterValue meterValue = meterValueRepositoryImpl.saveMeterValue(meterValue4);
-        Assert.assertTrue(meterValue.getId().equals(meterValue4.getId()));
-        Assert.assertTrue(meterValue.getCustomerId().equals(meterValue4.getCustomerId()));
-        Assert.assertTrue(meterValue.getValue() == meterValue4.getValue());
+        List<MeterValue> values = new ArrayList<>();
+        values.add(meterValue4);
+        List<MeterValue> meterValues = meterValueRepositoryImpl.saveMeterValues(values);
+        Assert.assertTrue(meterValues.get(0).getId().equals(meterValue4.getId()));
+        Assert.assertTrue(meterValues.get(0).getCustomerId().equals(meterValue4.getCustomerId()));
+        Assert.assertTrue(meterValues.get(0).getValue() == meterValue4.getValue());
     }
     //UUID id, UUID meterDataId, String meterId, String userId, Instant hour, double value
     private MeterValue meterValue1 = new MeterValue(

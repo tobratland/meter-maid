@@ -33,19 +33,26 @@ public class MeterController {
             }
             MeterData meterData = new MeterData(meterDataWithValues);
             MeterData returnedMeterData = meterDataRepositoryImpl.saveMeterData(meterData);
-            Map<Instant, Double> returnedMap = new HashMap<>();
-            for (Map.Entry<Instant,Double> entry : meterDataWithValues.getValues().entrySet()){
+            List<MeterValue> values = new ArrayList<>();
+            Map<Instant, Double> valuesFromMeterDataWithValues = meterDataWithValues.getValues();
+            for (Map.Entry<Instant, Double> entry : valuesFromMeterDataWithValues.entrySet()) {
                 MeterValue meterValue = new MeterValue(
-                        returnedMeterData.getId(),
-                        returnedMeterData.getMeter_id(),
-                        returnedMeterData.getCustomer_id(),
+                        UUID.randomUUID(),
+                        meterData.getId(),
+                        meterData.getMeter_id(),
+                        meterData.getCustomer_id(),
                         entry.getKey(),
                         entry.getValue()
                 );
-                MeterValue returnedMeterValue = meterValueRepositoryImpl.saveMeterValue(meterValue);
-                returnedMap.put(returnedMeterValue.getHour(),returnedMeterValue.getValue());
+                values.add(meterValue);
             }
-            MeterDataWithValues returnedMeterDataWithValues = new MeterDataWithValues(meterData, returnedMap);
+            List<MeterValue> returnedValues = meterValueRepositoryImpl.saveMeterValues(values);
+            Map<Instant, Double> mapOfReturnedValues = new HashMap<>();
+            for (MeterValue theValue: returnedValues
+                 ) {
+                mapOfReturnedValues.put(theValue.getHour(), theValue.getValue());
+            }
+            MeterDataWithValues returnedMeterDataWithValues = new MeterDataWithValues(returnedMeterData,mapOfReturnedValues);
         return new ResponseEntity<>(returnedMeterDataWithValues, HttpStatus.CREATED);
 
         }catch(Exception ex){
