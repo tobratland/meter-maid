@@ -53,11 +53,10 @@ public class IntegrationTests {
 
         meterDataRepositoryImpl.saveMeterData(meterData0);
         meterDataRepositoryImpl.saveMeterData(meterData1);
-        List<MeterValue> meterValuesFor0 = meterValueRepositoryImpl.saveMeterValues(getListOfMeterValuesFromMeterDataForTesting(0));
-        List<MeterValue> meterValuesFor1 = meterValueRepositoryImpl.saveMeterValues(getListOfMeterValuesFromMeterDataForTesting(1));
-        List<MeterValue> meterValuesFor2 = meterValueRepositoryImpl.saveMeterValues(getListOfMeterValuesFromMeterDataForTesting(2));
+        meterValueRepositoryImpl.saveMeterValues(getListOfMeterValuesFromMeterDataForTesting(0));
+        meterValueRepositoryImpl.saveMeterValues(getListOfMeterValuesFromMeterDataForTesting(1));
+        meterValueRepositoryImpl.saveMeterValues(getListOfMeterValuesFromMeterDataForTesting(2));
 
-        System.out.println(meterValuesFor0.get(1).getValue());
 
 
 

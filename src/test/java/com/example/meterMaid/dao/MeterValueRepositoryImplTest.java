@@ -59,18 +59,17 @@ class MeterValueRepositoryImplTest {
 
     @Test
     void getMeterValueFromDateToDateByCustomerId() {
-        List<MeterValue> meterValueList = meterValueRepositoryImpl.getMeterValueFromDateToDateByCustomerId(Instant.parse("1900-08-11T00:00:00Z"),Instant.parse("1900-08-11T00:01:00Z"),"testing123");
-        Assert.assertEquals(meterValueList.size(), 1);
-        Assert.assertTrue(meterValueList.get(0).getMeterId().equals(meterValue3.getMeterId()));
+        Double returnedValue = meterValueRepositoryImpl.getMeterValueFromDateToDateByCustomerId(Instant.parse("1900-08-11T00:00:00Z"),Instant.parse("1900-08-11T00:01:00Z"),"testing123");
+        Assert.assertNotNull(returnedValue);
+        Assert.assertEquals(returnedValue, meterValue3.getValue(),0.01);
 
     }
 
     @Test
     void getMeterValueFromDateToDateByMeterId() {
-        List<MeterValue> meterValueList = meterValueRepositoryImpl.getMeterValueFromDateToDateByMeterId(Instant.parse("1900-08-11T00:00:00Z"),Instant.parse("1900-08-11T00:01:00Z"),"test234");
-        Assert.assertEquals(meterValueList.size(), 1);
-        Assert.assertTrue(meterValueList.get(0).getCustomerId().equals(meterValue3.getCustomerId()));
-
+        Double returnedValue = meterValueRepositoryImpl.getMeterValueFromDateToDateByMeterId(Instant.parse("1900-08-11T00:00:00Z"),Instant.parse("1900-08-11T00:01:00Z"),"test234");
+        Assert.assertNotNull(returnedValue);
+        Assert.assertEquals(returnedValue, meterValue3.getValue(),0.01);
     }
 
     @Test
@@ -78,9 +77,9 @@ class MeterValueRepositoryImplTest {
         List<MeterValue> values = new ArrayList<>();
         values.add(meterValue4);
         List<MeterValue> meterValues = meterValueRepositoryImpl.saveMeterValues(values);
-        Assert.assertTrue(meterValues.get(0).getId().equals(meterValue4.getId()));
-        Assert.assertTrue(meterValues.get(0).getCustomerId().equals(meterValue4.getCustomerId()));
-        Assert.assertTrue(meterValues.get(0).getValue() == meterValue4.getValue());
+        Assert.assertEquals(meterValues.get(0).getId(), meterValue4.getId());
+        Assert.assertEquals(meterValues.get(0).getCustomerId(), meterValue4.getCustomerId());
+        Assert.assertEquals(meterValues.get(0).getValue(), meterValue4.getValue(), 0.01);
     }
     //UUID id, UUID meterDataId, String meterId, String userId, Instant hour, double value
     private MeterValue meterValue1 = new MeterValue(

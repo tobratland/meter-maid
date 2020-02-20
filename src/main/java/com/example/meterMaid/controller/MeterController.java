@@ -114,10 +114,8 @@ public class MeterController {
             meterSum.setTo(to);
             meterSum.setId(id);
             meterSum.setTypeOfSum("Sum for meter: " + id + ", in period: " + from.toString() + " to: " + to.toString() + ".");
-            List<MeterValue> returnedMeterValues = meterValueRepositoryImpl.getMeterValueFromDateToDateByMeterId(from, to, id);
-            for (int i = 0; i < returnedMeterValues.size(); i++) {
-                meterSum.addSum(returnedMeterValues.get(i).getValue());
-            }
+            Double returnedSum = meterValueRepositoryImpl.getMeterValueFromDateToDateByMeterId(from, to, id);
+            meterSum.setSum(returnedSum);
             return new ResponseEntity<>(meterSum, HttpStatus.OK);
         }
 
@@ -128,17 +126,13 @@ public class MeterController {
         if(from.isAfter(to)){
             return new ResponseEntity<>(new MeterSum(), HttpStatus.BAD_REQUEST);
         } else{
-            List<MeterDataWithValues> returnedMeterDataWithValueList = new ArrayList<>();
             MeterSum meterSum = new MeterSum();
             meterSum.setFrom(from);
             meterSum.setTo(to);
             meterSum.setId(id);
             meterSum.setTypeOfSum("Sum for customer: " + id + ", in period: " + from.toString() + " to: " + to.toString() + ".");
-
-            List<MeterValue> returnedMeterValues = meterValueRepositoryImpl.getMeterValueFromDateToDateByCustomerId(from, to, id);
-            for (int i = 0; i < returnedMeterValues.size(); i++) {
-                meterSum.addSum(returnedMeterValues.get(i).getValue());
-            }
+            Double returnedSum = meterValueRepositoryImpl.getMeterValueFromDateToDateByCustomerId(from, to, id);
+            meterSum.setSum(returnedSum);
 
             return new ResponseEntity<>(meterSum, HttpStatus.OK);
         }

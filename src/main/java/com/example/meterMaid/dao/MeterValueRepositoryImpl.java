@@ -66,33 +66,19 @@ public class MeterValueRepositoryImpl implements MeterValueRepository {
     }
 
     @Override
-    public List<MeterValue> getMeterValueFromDateToDateByCustomerId(Instant from, Instant to, String id) {
-        Timestamp fromtime =java.sql.Timestamp.from(from);
-        Timestamp totime =java.sql.Timestamp.from(to);
-        String sql = "select * from metervalues where hour >= ? and hour <= ? and userid = ?";
-        return  jdbcTemplate.query(sql, new Object[]{fromtime, totime, id},((rs, rowNum) -> new MeterValue(
-                (UUID) rs.getObject("id"),
-                (UUID) rs.getObject("meterdataid"),
-                rs.getString("meterid"),
-                rs.getString("userid"),
-                rs.getTimestamp("hour").toInstant(),
-                rs.getDouble("value")
-        )));
+    public Double getMeterValueFromDateToDateByCustomerId(Instant from, Instant to, String id) {
+        Timestamp fromTime =java.sql.Timestamp.from(from);
+        Timestamp toTime =java.sql.Timestamp.from(to);
+        String sql = "select sum(value) from metervalues where hour >= ? and hour <= ? and userid = ?";
+        return  jdbcTemplate.queryForObject(sql, Double.class, fromTime, toTime, id);
     }
 
     @Override
-    public List<MeterValue> getMeterValueFromDateToDateByMeterId(Instant from, Instant to, String id) {
-        Timestamp fromtime =java.sql.Timestamp.from(from);
-        Timestamp totime =java.sql.Timestamp.from(to);
-        String sql = "select * from metervalues where hour >= ? and hour <= ? and meterid = ?";
-        return  jdbcTemplate.query(sql, new Object[]{fromtime, totime, id},((rs, rowNum) -> new MeterValue(
-                (UUID) rs.getObject("id"),
-                (UUID) rs.getObject("meterdataid"),
-                rs.getString("meterid"),
-                rs.getString("userid"),
-                rs.getTimestamp("hour").toInstant(),
-                rs.getDouble("value")
-        )));
+    public Double getMeterValueFromDateToDateByMeterId(Instant from, Instant to, String id) {
+        Timestamp fromTime =java.sql.Timestamp.from(from);
+        Timestamp toTime =java.sql.Timestamp.from(to);
+        String sql = "select sum(value) from metervalues where hour >= ? and hour <= ? and meterid = ?";
+        return  jdbcTemplate.queryForObject(sql, Double.class, fromTime, toTime, id);
     }
 
     @Override

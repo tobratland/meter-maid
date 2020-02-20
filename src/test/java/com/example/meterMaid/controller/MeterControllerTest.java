@@ -91,7 +91,7 @@ class MeterControllerTest {
         double sumOfValues = getSumOfValues(listOfMeterValues);
         System.out.println(sumOfValues);
         when(meterDataRepositoryImpl.getMeterDataFromDateToDateByMeterId(Instant.parse("2018-08-09T00:00:00Z"), Instant.parse("2018-08-09T23:00:00Z"),"test123")).thenReturn(listOfMeterData);
-        when(meterValueRepositoryImpl.getMeterValueFromDateToDateByMeterId(Instant.parse("2018-08-09T00:00:00Z"), Instant.parse("2018-08-09T23:00:00Z"),"test123")).thenReturn(listOfMeterValues);
+        when(meterValueRepositoryImpl.getMeterValueFromDateToDateByMeterId(Instant.parse("2018-08-09T00:00:00Z"), Instant.parse("2018-08-09T23:00:00Z"),"test123")).thenReturn(sumOfValues);
 
 
         mockMvc.perform(get("/metermaid/api/meterdata/2018-08-09T00:00:00Z/2018-08-09T23:00:00Z/meterid:test123/")
@@ -109,14 +109,13 @@ class MeterControllerTest {
     @Test
     void testGetMeterDataSumFromDateToDateByCustomerId() throws Exception{
         List<MeterData> listOfMeterData = getListOfMeterData();
-        listOfMeterData.remove(0);
-        List<MeterValue> listOfMeterValues = getListOfMeterValuesFromMeterData(1);
-        listOfMeterValues.addAll(getListOfMeterValuesFromMeterData(2));
+        List<MeterValue> listOfMeterValues = getListOfMeterValuesFromMeterData(0);
+        listOfMeterValues.addAll(getListOfMeterValuesFromMeterData(1));
 
         double sumOfValues = getSumOfValues(listOfMeterValues);
+        System.out.println(sumOfValues);
 
-
-        when(meterValueRepositoryImpl.getMeterValueFromDateToDateByCustomerId(Instant.parse("2018-08-09T00:00:00Z"), Instant.parse("2018-08-09T23:00:00Z"),"testing123")).thenReturn(listOfMeterValues);
+        when(meterValueRepositoryImpl.getMeterValueFromDateToDateByCustomerId(Instant.parse("2018-08-09T00:00:00Z"), Instant.parse("2018-08-09T23:00:00Z"),"testing123")).thenReturn(sumOfValues);
 
         mockMvc.perform(get("/metermaid/api/meterdata/2018-08-09T00:00:00Z/2018-08-09T23:00:00Z/customerid:testing123/")
                 .contentType(MediaType.APPLICATION_JSON))
